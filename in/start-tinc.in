@@ -1,0 +1,10 @@
+#!/bin/sh
+echo ----------------------------------------------------------------------
+echo $1 - Port: $2 - IP: __VPN_NETWORK__.$3
+echo ----------------------------------------------------------------------
+if [ ! -d "/sys/class/net/__TAP_ADAPTER_NAME__/" ]
+then
+	./add-TAP
+fi
+TINC_VPN_LASTOCTET=$3 tincd -c . -o "Name=$1" -o "Ed25519PrivateKeyFile=keys/$1.key" -o "BindToAddress=* $2" -D --pidfile=./pid
+cd ..

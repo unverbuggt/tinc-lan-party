@@ -1,0 +1,228 @@
+#!/bin/bash
+
+#config
+VPN_NETWORK=192.168.235
+LAST_OCTET=1 #for static nodes
+LAST_OCTET_DYN=100 #for dynamic nodes
+TAP_ADAPTER_NAME=TAP1
+DYN_TINC_PORT=655 #tinc needs CAP_NET_BIND_SERVICE for ports < 1024 in linux! see NOTES
+COMPRESSION=0 #0=no compression, 12=lz4
+
+if [ ! -f "nodes-static.txt" ]
+then
+	echo "init nodes-static.txt"
+	cp nodes-static.example.txt nodes-static.txt
+fi
+if [ ! -f "nodes-dynamic.txt" ]
+then
+	echo "init nodes-dynamic.txt"
+	cp nodes-dynamic.example.txt nodes-dynamic.txt
+fi
+
+
+echo -e "\ncreating folders"
+mkdir -p _out/windows/tincvpn/hosts
+mkdir -p _out/windows/tincvpn/keys
+mkdir -p _out/linux/tincvpn/hosts
+mkdir -p _out/linux/tincvpn/keys
+mkdir -p _out/static-nodes
+mkdir -p store/keys
+mkdir -p store/hosts
+mkdir -p store/pub
+mkdir -p tmp
+
+echo -e "\nprocess static nodes..."
+while IFS='' read -r line
+do
+	read -a linearr <<< "$line"
+	node=${linearr[0]}
+	
+	if [ -n "$node" ] && [ "$node" != "#" ]
+	then
+		if [ -z "${linearr[1]}" ] #increment LAST_OCTET by 1 if undefined
+		then
+			((LAST_OCTET+=1))
+		else
+			LAST_OCTET=${linearr[1]}
+		fi
+		address=${linearr[2]}
+		port=${linearr[3]}
+		
+		if [ ! -n "$port" ]; then
+			port=655 #If no port defined default to 655
+		fi
+		
+		if [ ! -f "store/keys/$node.key" ] #generate key if needed
+		then
+			echo -e "\ngenerating key for [$node]"
+			echo "----------------------------------------"
+			tinc -b -c tmp generate-ed25519-keys
+			echo "----------------------------------------"
+			mv tmp/ed25519_key.priv store/keys/$node.key
+			mv tmp/ed25519_key.pub store/pub/$node
+		fi
+		cp store/pub/$node store/hosts/$node
+		echo "Compression = $COMPRESSION" >> store/hosts/$node #add Compression
+		if [ -n "$address" ] && [ "$address" != "-" ]; then #add Adress if defined
+			echo "Address = $address" >> store/hosts/$node
+		fi
+		echo "Port = $port" >> store/hosts/$node
+		
+		echo "processing [$node]"
+		cp store/hosts/$node _out/windows/tincvpn/hosts/$node
+		cp store/hosts/$node _out/linux/tincvpn/hosts/$node
+		
+		mkdir -p _out/static-nodes/$node/hosts
+		cp store/keys/$node.key _out/static-nodes/$node/ed25519_key.priv
+		cp store/hosts/$node _out/static-nodes/$node/ed25519_key.pub
+		
+		sed "s/__TINC_NAME__/${node}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g;s/__STAT_TINC_PORT__/${port}/g" in/tinc.conf.static.in > _out/static-nodes/$node/tinc.conf
+		
+		sed "s/__LAST_OCTET__/${LAST_OCTET}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/tinc-up.static.in > _out/static-nodes/$node/tinc-up
+		if [ "$LAST_OCTET" != 1 ] #delete static mac adress on all nodes except at LAST_OCTET_DYN=1
+		then
+			sed -i "2d" _out/static-nodes/$node/tinc-up
+		fi
+		chmod +x _out/static-nodes/$node/tinc-up
+		
+		sed "s/__LAST_OCTET__/${LAST_OCTET}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/tinc-down.static.in > _out/static-nodes/$node/tinc-down
+		chmod +x _out/static-nodes/$node/tinc-down
+	fi
+done < nodes-static.txt
+
+echo -e "\nprocess dymanic nodes..."
+LAST_OCTET_DYN=100
+
+while IFS='' read -r line
+do
+	read -a linearr <<< "$line"
+	node=${linearr[0]}
+	
+	if [ -n "$node" ] && [ "$node" != "#" ]
+	then
+		if [ -z "${linearr[1]}" ] #increment LAST_OCTET_DYN by 1 if undefined
+		then
+			((LAST_OCTET_DYN+=1))
+		else
+			LAST_OCTET_DYN=${linearr[1]}
+		fi
+		address=${linearr[2]}
+		port=${linearr[3]}
+		
+		((DYN_TINC_PORT+=1)) #we increment the tinc port on dynamic nodes because there could be two users behind the same internet access
+		
+		if [ ! -f "store/keys/$node.key" ] #generate key if needed
+		then
+			echo -e "\ngenerating key for [$node]"
+			echo "----------------------------------------"
+			tinc -b -c tmp generate-ed25519-keys
+			echo "----------------------------------------"
+			mv tmp/ed25519_key.priv store/keys/$node.key
+			mv tmp/ed25519_key.pub store/pub/$node
+		fi
+		cp store/pub/$node store/hosts/$node
+		echo "Compression = $COMPRESSION" >> store/hosts/$node #add Compression
+		if [ -n "$address" ]; then #add Adress if defined (could be a dyndns or static ip)
+			echo "Address = $address" >> store/hosts/$node
+			#if we defined an adress we also need to set the dynamic port
+			if [ -n "$port" ]; then #add Port if defined
+				echo "Port = $port" >> store/hosts/$node
+			else
+				echo "Port = $DYN_TINC_PORT" >> store/hosts/$node
+			fi
+		fi
+		
+		echo "processing [$node]"
+		cp store/hosts/$node _out/windows/tincvpn/hosts/$node
+		cp store/keys/$node.key _out/windows/tincvpn/keys/$node.key
+		cp store/hosts/$node _out/linux/tincvpn/hosts/$node
+		cp store/keys/$node.key _out/linux/tincvpn/keys/$node.key
+		
+		if [ -n "$port" ]; then
+			sed "s/__TINC_NAME__/${node}/g;s/__DYN_TINC_PORT__/${port}/g;s/__LAST_OCTET__/${LAST_OCTET_DYN}/g" in/node.cmd.in > _out/windows/$node.cmd
+			sed "s/__TINC_NAME__/${node}/g;s/__DYN_TINC_PORT__/${port}/g;s/__LAST_OCTET__/${LAST_OCTET_DYN}/g" in/node.in > _out/linux/$node
+		else
+			sed "s/__TINC_NAME__/${node}/g;s/__DYN_TINC_PORT__/${DYN_TINC_PORT}/g;s/__LAST_OCTET__/${LAST_OCTET_DYN}/g" in/node.cmd.in > _out/windows/$node.cmd
+			sed "s/__TINC_NAME__/${node}/g;s/__DYN_TINC_PORT__/${DYN_TINC_PORT}/g;s/__LAST_OCTET__/${LAST_OCTET_DYN}/g" in/node.in > _out/linux/$node
+		fi
+		
+		chmod +x _out/linux/$node
+	fi
+done < nodes-dynamic.txt
+
+echo -e "\ngenerate tinc.conf"
+sed "s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/tinc.conf.windows.in > _out/windows/tincvpn/tinc.conf
+
+sed "s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/tinc.conf.linux.in > _out/linux/tincvpn/tinc.conf
+
+echo -e "\ngenerate windows scripts"
+sed "s/__VPN_NETWORK__/${VPN_NETWORK}/g;s/__LAST_OCTET__/${LAST_OCTET_DYN}/g;s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g" in/tinc-start.cmd.in > _out/windows/tincvpn/tinc-start.cmd
+cp in/tinc-top.cmd.in _out/windows/tincvpn/tinc-top.cmd
+tar xf in/tinc-win64.tar.xz -C _out/windows
+tar xf in/tap-win64.tar.xz -C _out/windows
+
+echo -e "\ngenerate linux scripts"
+sed "s/__VPN_NETWORK__/${VPN_NETWORK}/g;s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g" in/start-tinc.in > _out/linux/tincvpn/start-tinc
+chmod +x _out/linux/tincvpn/start-tinc
+sed "s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/tinc-up.in > _out/linux/tincvpn/tinc-up
+chmod +x _out/linux/tincvpn/tinc-up
+sed "s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/tinc-down.in > _out/linux/tincvpn/tinc-down
+chmod +x _out/linux/tincvpn/tinc-down
+sed "s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g" in/add-TAP.in > _out/linux/tincvpn/add-TAP
+chmod +x _out/linux/tincvpn/add-TAP
+sed "s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g" in/remove-TAP.in > _out/linux/tincvpn/remove-TAP
+chmod +x _out/linux/tincvpn/remove-TAP
+
+echo -e "\ngenerate NOTES"
+sed "s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/NOTES.linux.md > tmp/NOTES.linux.md
+cd in
+pandoc -s ../tmp/NOTES.linux.md -o ../_out/linux/NOTES.html --self-contained
+cd ..
+
+sed "s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/NOTES.windows.md > tmp/NOTES.windows.md
+cd in
+pandoc -s ../tmp/NOTES.windows.md -o ../_out/windows/_NOTES.html --self-contained
+cd ..
+
+cd in
+pandoc -s NOTES.static.md -o ../_out/static-nodes/NOTES.html --self-contained
+cd ..
+
+echo -e "\npack static-nodes"
+while IFS='' read -r line
+do
+	read -a linearr <<< "$line"
+	node=${linearr[0]}
+	
+	if [ -n "$node" ] && [ "$node" != "#" ]
+	then
+		cp store/hosts/* _out/static-nodes/$node/hosts
+		tar -czf _out/static-nodes/$node.tar.gz -C _out/static-nodes $node --owner=0 --group=0
+	fi
+done < nodes-static.txt
+
+echo -e "\npacking windows scripts"
+rm -f _out/tinc.7z
+if [ -n "$1" ]
+then
+	7z a -p"$1" _out/tinc.7z ./_out/windows/*
+else
+	7z a _out/tinc.7z ./_out/windows/*
+fi
+
+echo -e "\npacking linux scripts"
+rm -f _out/tinc.tar.gz
+rm -f _out/tinc.tgz.gpg
+if [ -n "$1" ]
+then
+	cd _out/linux
+	tar czf - * --owner=0 --group=0 | gpg -c --batch --passphrase "$1" -o ../tinc.tgz.gpg
+	cd ../..
+else
+	cd _out/linux
+	tar czf ../tinc.tar.gz * --owner=0 --group=0
+	cd ../..
+fi
+
+echo -e "\ncleaning up"
+rm -Rf tmp

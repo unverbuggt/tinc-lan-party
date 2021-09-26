@@ -1,0 +1,9 @@
+Name = __TINC_NAME__
+Mode = switch
+Device = /dev/net/tun
+DeviceType = tap
+AddressFamily = any
+Interface = tun0
+BroadcastSubnet = __VPN_NETWORK__.255
+BindToAddress = * __STAT_TINC_PORT__
+

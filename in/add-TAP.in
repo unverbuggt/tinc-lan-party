@@ -1,0 +1,3 @@
+#!/bin/sh
+echo add __TAP_ADAPTER_NAME__ tap adapter for $USER.
+sudo ip tuntap add dev __TAP_ADAPTER_NAME__ mode tap user $USER

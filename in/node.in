@@ -1,0 +1,4 @@
+#!/bin/sh
+cd tincvpn
+./start-tinc __TINC_NAME__ __DYN_TINC_PORT__ __LAST_OCTET__
+

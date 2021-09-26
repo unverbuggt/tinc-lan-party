@@ -1,0 +1,7 @@
+@ECHO OFF
+echo ----------------------------------------------------------------------
+echo %1 - Port: %2 - IP: __VPN_NETWORK__.%3
+echo ----------------------------------------------------------------------
+netsh interface ipv4 set address name="__TAP_ADAPTER_NAME__" static __VPN_NETWORK__.%3 255.255.255.0 __VPN_NETWORK__.1
+tincd -c . -o "Name=%1" -o "Ed25519PrivateKeyFile=keys\%1.key" -o "BindToAddress=* %2" -D
+pause

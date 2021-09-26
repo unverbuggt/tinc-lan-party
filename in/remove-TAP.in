@@ -1,0 +1,4 @@
+#!/bin/sh
+ip tuntap delete __TAP_ADAPTER_NAME__ mode tap
+echo removed __TAP_ADAPTER_NAME__ tap adapter.
+

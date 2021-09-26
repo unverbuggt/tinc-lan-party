@@ -1,0 +1,5 @@
+#!/bin/sh
+ip link set $INTERFACE address b0:00:00:00:b1:e5
+ip link set $INTERFACE up
+ip addr add __VPN_NETWORK__.__LAST_OCTET__/32 dev $INTERFACE
+ip route add __VPN_NETWORK__.0/24 dev $INTERFACE

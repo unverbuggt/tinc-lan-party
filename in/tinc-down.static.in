@@ -1,0 +1,4 @@
+#!/bin/sh
+ip route del __VPN_NETWORK__.__LAST_OCTET__/24 dev $INTERFACE
+ip addr del __VPN_NETWORK__.1/32 dev $INTERFACE
+ip link set $INTERFACE down

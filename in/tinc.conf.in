@@ -1,0 +1,15 @@
+Mode = switch
+AddressFamily = any
+Device = /dev/net/tun
+Interface = __TAP_ADAPTER_NAME__
+DeviceType = tap
+BroadcastSubnet = __VPN_NETWORK__.255
+UPnP = yes
+LocalDiscovery = yes
+LogLevel = 1
+
+#we want low latency
+ProcessPriority = high
+
+#Ed25519PrivateKeyFile=keys/xxx.key # private key is set by start-tinc
+#BindToAddress=* 655 # port number is set by start-tinc

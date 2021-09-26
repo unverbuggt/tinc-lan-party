@@ -1,0 +1,27 @@
+# Dynamic node names
+# ----------------------------------------------------------------------
+# "The name must consist only of alfanumeric and underscore characters 
+# (a-z, A-Z, 0-9 and _), and is case sensitive."
+#
+# After the name write the last IP octet. This is optional.
+# Numbering of dynamic nodes starts at 100 and is incremented the next
+# node once set.
+#
+# After the last IP octet you can write a dyndns adress or IP adress.
+# This is also optional but only possible if last IP octet is defined.
+#
+# After the adress you can define a port. If no port is defined it
+# is incremented for each dynamic node strating from DYN_TINC_PORT+1.
+#
+# The format is: name last_octet adress port
+#
+# This file needs to be saved with Unix line endings!
+
+racingcar
+cat
+thimble
+scottiedog
+battleship	200	123.45.67.89
+wheelbarrow
+boot
+tophat

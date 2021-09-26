@@ -1,0 +1,25 @@
+# Static node names
+# ----------------------------------------------------------------------
+# "The name must consist only of alfanumeric and underscore characters 
+# (a-z, A-Z, 0-9 and _), and is case sensitive."
+# 
+# After the name write the last IP octet. This is optional but recommended.
+# Numbering of static nodes starts at 1 and is incremented the next 
+# node once set.
+#
+# After the last IP octet write the DNS name or IP adress. At least one
+# node needs a adress defined.
+#
+# After the adress you can define a port. If no port is defined 655 is used.
+#
+# If you just want to use a different port than 655 you can define the
+# adress as "-".
+#
+#
+# The format is: name last_octet adress port
+#
+# This file needs to be saved with Unix line endings!
+
+entry	1	example.com	655
+test	2	-		1655
+

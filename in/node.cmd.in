@@ -1,0 +1,5 @@
+@cd /d %~dp0
+@cd tincvpn
+@start "__TINC_NAME__" cmd /c tinc-start __TINC_NAME__ __DYN_TINC_PORT__ __LAST_OCTET__
+@timeout /t 2
+@start tinc-top cmd /c tinc-top

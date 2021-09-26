@@ -1,0 +1,5 @@
+#!/bin/sh
+echo $INTERFACE UP!
+sudo ip link set $INTERFACE up
+sudo ip addr add __VPN_NETWORK__.$TINC_VPN_LASTOCTET/32 dev $INTERFACE
+sudo ip route add __VPN_NETWORK__.0/24 dev $INTERFACE
