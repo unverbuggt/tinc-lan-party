@@ -60,6 +60,7 @@ You'll have to use the same port number (forwarding from another port won't work
 The more nodes reachable externally via tinc port the better.
 
 The easiest way to do this is allow your PC to configure the firewall on your internet router via UPnP. For example:
+
 ![](pic/enable_upnp.png "enable UPnP for the host running tinc")
 
 # Running the node scripts
