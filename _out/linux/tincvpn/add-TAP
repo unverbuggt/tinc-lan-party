@@ -1,0 +1,3 @@
+#!/bin/sh
+echo add TAP1 tap adapter for $USER.
+sudo ip tuntap add dev TAP1 mode tap user $USER

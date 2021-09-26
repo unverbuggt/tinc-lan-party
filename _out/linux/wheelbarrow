@@ -1,0 +1,4 @@
+#!/bin/sh
+cd tincvpn
+./start-tinc wheelbarrow 661 201
+

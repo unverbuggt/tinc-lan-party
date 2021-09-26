@@ -1,0 +1,4 @@
+#!/bin/sh
+cd tincvpn
+./start-tinc scottiedog 659 104
+

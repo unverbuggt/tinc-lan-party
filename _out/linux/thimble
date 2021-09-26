@@ -1,0 +1,4 @@
+#!/bin/sh
+cd tincvpn
+./start-tinc thimble 658 103
+
