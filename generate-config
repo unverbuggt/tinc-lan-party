@@ -177,15 +177,18 @@ echo -e "\ngenerate NOTES"
 sed "s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/NOTES.linux.md > tmp/NOTES.linux.md
 cd in
 pandoc -s ../tmp/NOTES.linux.md -o ../_out/linux/NOTES.html --self-contained
+#pandoc -s ../tmp/NOTES.linux.md -o ../_out/linux/NOTES.pdf -V geometry:a4paper,margin=2cm
 cd ..
 
 sed "s/__TAP_ADAPTER_NAME__/${TAP_ADAPTER_NAME}/g;s/__VPN_NETWORK__/${VPN_NETWORK}/g" in/NOTES.windows.md > tmp/NOTES.windows.md
 cd in
 pandoc -s ../tmp/NOTES.windows.md -o ../_out/windows/_NOTES.html --self-contained
+#pandoc -s ../tmp/NOTES.windows.md -o ../_out/windows/_NOTES.pdf -V geometry:a4paper,margin=2cm
 cd ..
 
 cd in
 pandoc -s NOTES.static.md -o ../_out/static-nodes/NOTES.html --self-contained
+#pandoc -s NOTES.static.md -o ../_out/static-nodes/NOTES.pdf -V geometry:a4paper,margin=2cm
 cd ..
 
 echo -e "\npack static-nodes"
