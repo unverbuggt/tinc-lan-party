@@ -16,7 +16,7 @@ Build and install:
 git clone https://github.com/gsliepen/tinc.git
 cd tinc
 autoreconf -fsi
-./configure --disable-legacy-protocol
+./configure --disable-legacy-protocol --with-systemd --sysconfdir=/etc --localstatedir=/var
 make
 sudo make install-strip
 ```
