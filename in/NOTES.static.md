@@ -23,8 +23,8 @@ sudo make install-strip
 
 ## Extract static configuration
 
-<pre>
-sudo tar xzf <b>node</b>.tar.gz -C /etc/tinc/
-sudo systemctl enable tinc@<b>node</b>
-sudo systemctl start tinc@<b>node</b>
-</pre>
+```
+sudo tar xzf node.tar.gz -C /etc/tinc/
+sudo systemctl enable tinc@node
+sudo systemctl start tinc@node
+```
