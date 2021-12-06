@@ -6,7 +6,8 @@ LAST_OCTET=1 #for static nodes
 LAST_OCTET_DYN=100 #for dynamic nodes
 TAP_ADAPTER_NAME=TAP1
 DYN_TINC_PORT=655 #tinc needs CAP_NET_BIND_SERVICE for ports < 1024 in linux! see NOTES
-COMPRESSION=0 #0=no compression, 12=lz4
+COMPRESSION=12 #0=no compression, 12=lz4
+NETWORK_NAME=lanparty #tincd --net=NETNAME for static config
 
 if [ ! -f "nodes-static.txt" ]
 then
@@ -200,7 +201,9 @@ do
 	if [ -n "$node" ] && [ "$node" != "#" ]
 	then
 		cp store/hosts/* _out/static-nodes/$node/hosts
-		tar -czf _out/static-nodes/$node.tar.gz -C _out/static-nodes $node --owner=0 --group=0
+		mv _out/static-nodes/$node _out/static-nodes/$NETWORK_NAME
+		tar -czf _out/static-nodes/$node.tar.gz -C _out/static-nodes $NETWORK_NAME --owner=0 --group=0
+		mv _out/static-nodes/$NETWORK_NAME _out/static-nodes/$node 
 	fi
 done < nodes-static.txt
 
