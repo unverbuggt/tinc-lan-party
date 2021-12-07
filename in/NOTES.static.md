@@ -25,6 +25,6 @@ sudo make install-strip
 
 ```
 sudo tar xzf node.tar.gz -C /etc/tinc/
-sudo systemctl enable tinc@node
-sudo systemctl start tinc@node
+sudo systemctl enable tinc@__NETWORK_NAME__
+sudo systemctl start tinc@__NETWORK_NAME__
 ```
