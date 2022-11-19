@@ -16,7 +16,9 @@ Build and install:
 sudo apt install meson pkg-config
 git clone https://github.com/gsliepen/tinc.git
 cd tinc
-meson setup build -Dprefix=/usr/local -Dbuildtype=release -Dlzo=disabled -Dlz4=enabled -Dzlib=disabled -Dcrypto=nolegacy -Dsystemd=enabled -Dsysconfdir=/etc -Dlocalstatedir=/var -Dminiupnpc=enabled
+meson setup build -Dprefix=/usr/local -Dbuildtype=release -Dlzo=disabled \
+                  -Dlz4=enabled -Dzlib=disabled -Dcrypto=nolegacy -Dsystemd=enabled \
+                  -Dsysconfdir=/etc -Dlocalstatedir=/var -Dminiupnpc=enabled
 ninja -C build
 sudo ninja -C build install
 ```
