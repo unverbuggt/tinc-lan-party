@@ -13,12 +13,12 @@ sudo apt install git build-essential autoconf texinfo \
 Build and install:
 
 ```
+sudo apt install meson pkg-config
 git clone https://github.com/gsliepen/tinc.git
 cd tinc
-autoreconf -fsi
-./configure --disable-legacy-protocol --enable-miniupnpc
-make
-sudo make install-strip
+meson setup build -Dprefix=/usr/local -Dbuildtype=release -Dlzo=disabled -Dlz4=enabled -Dzlib=disabled -Dcrypto=nolegacy -Dsystemd=enabled -Dsysconfdir=/etc -Dlocalstatedir=/var -Dminiupnpc=enabled
+ninja -C build
+sudo ninja -C build install
 ```
 
 ## Set needed capabilities
