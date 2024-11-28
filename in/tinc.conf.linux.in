@@ -14,3 +14,6 @@ ProcessPriority = high
 
 #Ed25519PrivateKeyFile=keys/xxx.key # private key is set by start-tinc
 #BindToAddress=* 655 # port number is set by start-tinc
+
+#Setting this to zero will disable replay tracking completely and pass all traffic, but leaves tinc vulnerable to replay-based attacks on your traffic.
+ReplayWindow = 0
