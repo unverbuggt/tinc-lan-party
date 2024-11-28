@@ -7,3 +7,5 @@ Interface = tun0
 BroadcastSubnet = __VPN_NETWORK__.255
 BindToAddress = * __STAT_TINC_PORT__
 
+#Setting this to zero will disable replay tracking completely and pass all traffic, but leaves tinc vulnerable to replay-based attacks on your traffic.
+ReplayWindow = 0
